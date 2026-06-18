@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MediSearch – Medicine Search Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal:        #0fb8a0;
+    --teal-dark:   #0a9c87;
+    --teal-deep:   #077a68;
+    --teal-pale:   rgba(15,184,160,0.08);
+    --teal-border: rgba(15,184,160,0.28);
+    --bg-hero:     linear-gradient(145deg, #c8f2ea 0%, #dff7f2 35%, #edfaf7 65%, #f7fffe 100%);
+    --bg-page:     #f4f6fb;
+    --text-dark:   #111827;
+    --text-mid:    #374151;
+    --text-soft:   #6b7280;
+    --text-pale:   #9ca3af;
+    --white:       #ffffff;
+    --border:      rgba(0,0,0,0.07);
+    --shadow-md:   0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg:   0 8px 40px rgba(0,0,0,0.13);
+    --radius-sm:   8px;
+    --radius-md:   12px;
+  }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg-page); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
+  .hero { background: var(--bg-hero); padding: 3.5rem 2rem 3rem; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .blob { position: absolute; border-radius: 50%; background: rgba(15,184,160,0.10); pointer-events: none; }
+  .blob-1 { width: 180px; height: 180px; top: -50px; right: 7%; }
+  .blob-2 { width: 90px; height: 90px; bottom: -20px; left: 9%; }
+  .blob-3 { width: 120px; height: 120px; top: 30%; right: -30px; }
+  .diamond { position: absolute; left: 5%; top: 50%; transform: translateY(-50%) rotate(45deg); width: 76px; height: 76px; border: 2.5px solid var(--teal-border); border-radius: 10px; pointer-events: none; }
+  .diamond-inner { position: absolute; inset: 13px; border: 2.5px solid rgba(15,184,160,0.48); border-radius: 5px; }
+  .hero-badge { background: rgba(15,184,160,0.12); color: var(--teal-deep); border: 1px solid var(--teal-border); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 1rem; position: relative; z-index: 1; animation: fadeUp .4s ease both; }
+  .hero-title { font-size: clamp(24px, 3.8vw, 40px); font-weight: 700; text-align: center; line-height: 1.2; margin-bottom: .5rem; position: relative; z-index: 1; animation: fadeUp .45s .05s ease both; }
+  .hero-title span { color: var(--teal); }
+  .hero-sub { font-size: 13px; color: var(--text-soft); text-align: center; margin-bottom: 1.8rem; position: relative; z-index: 1; animation: fadeUp .45s .1s ease both; }
+  .search-wrap { width: 100%; max-width: 600px; position: relative; z-index: 2; animation: fadeUp .45s .15s ease both; }
+  .search-form { display: flex; align-items: center; background: var(--white); border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); overflow: hidden; border: 1.5px solid transparent; transition: border-color .2s; }
+  .search-form:focus-within { border-color: var(--teal); }
+  .search-icon { padding: 0 .8rem 0 1rem; display: flex; align-items: center; flex-shrink: 0; }
+  .search-icon svg { width: 17px; height: 17px; stroke: var(--text-pale); fill: none; stroke-width: 2.2; }
+  .search-input { flex: 1; height: 52px; padding: 0 .5rem; border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-mid); background: transparent; }
+  .search-input::placeholder { color: var(--text-pale); font-style: italic; }
+  .search-btn { height: 52px; padding: 0 1.6rem; background: var(--teal); border: none; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .15s; white-space: nowrap; }
+  .search-btn:hover { background: var(--teal-dark); }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 1.1rem; position: relative; z-index: 1; animation: fadeUp .45s .2s ease both; }
+  .hero-tag { font-size: 11px; padding: 4px 12px; border-radius: 20px; background: rgba(15,184,160,0.10); border: 1px solid var(--teal-border); color: var(--teal-deep); cursor: pointer; font-weight: 500; transition: background .15s, transform .1s; text-decoration: none; }
+  .hero-tag:hover { background: rgba(15,184,160,0.2); transform: translateY(-1px); }
+  .features-bar { background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1.2rem 2rem; flex-shrink: 0; }
+  .features-inner { max-width: 860px; margin: 0 auto; display: flex; align-items: center; gap: 1.5rem; justify-content: center; }
+  .stat-pill { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-soft); }
+  .stat-pill strong { color: var(--teal-deep); font-size: 14px; font-weight: 700; }
+  .stat-divider { width: 1px; height: 24px; background: var(--border); }
+  main { flex: 1; max-width: 860px; width: 100%; margin: 0 auto; padding: 2rem; }
+  .empty-state { text-align: center; padding: 3.5rem 1rem; color: var(--text-soft); }
+  .empty-icon { width: 64px; height: 64px; background: var(--teal-pale); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+  .empty-icon svg { width: 30px; height: 30px; stroke: var(--teal); fill: none; stroke-width: 1.5; }
+  .empty-state h3 { font-size: 17px; font-weight: 600; color: var(--text-mid); margin-bottom: 6px; }
+  .empty-state p { font-size: 13px; margin-bottom: 1.5rem; }
+  .empty-tips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 1rem; }
+  .empty-tip { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; font-size: 12px; color: var(--text-mid); display: flex; align-items: center; gap: 6px; }
+  .empty-tip span { color: var(--teal); font-size: 15px; }
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+  .results-count { font-size: 13px; color: var(--text-soft); }
+  .results-count strong { color: var(--text-dark); }
+  .results-query { font-size: 12px; color: var(--teal-deep); background: var(--teal-pale); border: 1px solid var(--teal-border); padding: 3px 10px; border-radius: 12px; font-weight: 500; }
+  .eval-form { display: flex; flex-direction: column; gap: 0; }
+  .results-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem; }
+  .result-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.2rem 1.4rem; display: flex; gap: 1rem; align-items: flex-start; transition: box-shadow .15s, border-color .15s, transform .15s; animation: fadeUp .3s ease both; }
+  .result-card:hover { box-shadow: var(--shadow-md); border-color: var(--teal-border); transform: translateY(-1px); }
+  .result-rank { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text-pale); padding-top: 3px; flex-shrink: 0; width: 20px; text-align: right; }
+  .result-body { flex: 1; min-width: 0; }
+  .result-title { font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; text-transform: capitalize; }
+  .result-class { display: inline-block; font-size: 10px; font-weight: 600; color: var(--teal-deep); background: var(--teal-pale); border: 1px solid var(--teal-border); padding: 2px 9px; border-radius: 12px; margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .result-use { font-size: 13px; color: var(--text-mid); line-height: 1.6; margin-bottom: 8px; }
+  .result-use strong { color: var(--text-dark); font-weight: 600; }
+  .result-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .result-score { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--teal-deep); background: rgba(15,184,160,0.10); padding: 2px 9px; border-radius: 12px; }
+  .result-doc-id { font-size: 11px; color: var(--text-pale); font-family: 'DM Mono', monospace; }
+  .relevance-label { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--text-soft); cursor: pointer; padding: 5px 12px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--white); transition: all .15s; user-select: none; margin-left: auto; flex-shrink: 0; align-self: flex-start; }
+  .relevance-label input[type="checkbox"] { accent-color: var(--teal); width: 14px; height: 14px; cursor: pointer; }
+  .relevance-label:has(input:checked) { border-color: var(--teal); background: rgba(15,184,160,0.08); color: var(--teal-deep); }
+  .evaluate-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; background: var(--text-dark); color: #fff; border: none; border-radius: var(--radius-md); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.03em; cursor: pointer; transition: background .15s, transform .1s; }
+  .evaluate-btn:hover { background: #1e293b; transform: translateY(-1px); }
+  .evaluate-btn:active { transform: scale(0.99); }
+  .eval-results { margin-top: 1.5rem; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; animation: fadeUp .4s ease both; }
+  .eval-results-header { background: var(--teal); padding: 1rem 1.3rem; display: flex; align-items: center; gap: 10px; }
+  .eval-results-header svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; flex-shrink: 0; }
+  .eval-results-header h3 { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+  .eval-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .eval-metric { padding: 1.3rem 1.5rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+  .eval-metric:nth-child(2) { border-right: none; }
+  .eval-metric:nth-child(3), .eval-metric:nth-child(4) { border-bottom: none; }
+  .metric-label { font-size: 11px; font-weight: 600; color: var(--text-pale); text-transform: uppercase; letter-spacing: 0.08em; }
+  .metric-value { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 500; color: var(--text-dark); line-height: 1.1; }
+  .metric-value.good { color: var(--teal-deep); }
+  .metric-value.mid  { color: #d97706; }
+  .metric-value.poor { color: #dc2626; }
+  .metric-bar-wrap { height: 4px; background: #f1f5f9; border-radius: 2px; margin-top: 4px; overflow: hidden; }
+  .metric-bar { height: 100%; border-radius: 2px; background: var(--teal); transition: width .6s ease; }
+  .metric-desc { font-size: 11px; color: var(--text-pale); margin-top: 2px; }
+  footer { text-align: center; padding: 1.1rem; font-size: 11px; color: var(--text-pale); border-top: 1px solid var(--border); background: var(--white); flex-shrink: 0; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @media (max-width: 640px) { .diamond { display: none; } .hero { padding: 2.5rem 1.2rem 2rem; } main { padding: 1.2rem; } .eval-metrics { grid-template-columns: 1fr; } .eval-metric { border-right: none !important; } .features-inner { flex-wrap: wrap; gap: 10px; justify-content: center; } }
+
+  /* ── CHAT WIDGET ── */
+  #chat-fab { position: fixed; bottom: 28px; right: 28px; z-index: 1000; width: 56px; height: 56px; border-radius: 50%; background: var(--teal); border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(15,184,160,0.45); display: flex; align-items: center; justify-content: center; transition: background .15s, transform .15s; }
+  #chat-fab:hover { background: var(--teal-dark); transform: scale(1.07); }
+  #chat-fab svg { width: 24px; height: 24px; stroke: #fff; fill: none; stroke-width: 2; }
+  #chat-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: #fff; font-size: 9px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: none; align-items: center; justify-content: center; border: 2px solid #fff; }
+  #chat-panel { position: fixed; bottom: 96px; right: 28px; z-index: 999; width: 360px; max-height: 520px; background: var(--white); border-radius: 16px; box-shadow: 0 12px 48px rgba(0,0,0,0.18); display: flex; flex-direction: column; overflow: hidden; transform: scale(0.92) translateY(20px); opacity: 0; pointer-events: none; transition: all .22s cubic-bezier(.4,0,.2,1); transform-origin: bottom right; }
+  #chat-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+  .chat-header { background: var(--teal); padding: 14px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .chat-header-avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .chat-header-info { flex: 1; }
+  .chat-header-name { font-size: 14px; font-weight: 700; color: #fff; }
+  .chat-header-status { font-size: 11px; color: rgba(255,255,255,0.75); display: flex; align-items: center; gap: 5px; }
+  .chat-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+  .chat-close-btn { background: none; border: none; cursor: pointer; padding: 4px; color: rgba(255,255,255,0.8); font-size: 18px; line-height: 1; transition: color .15s; }
+  .chat-close-btn:hover { color: #fff; }
+  #chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
+  #chat-messages::-webkit-scrollbar { width: 4px; }
+  #chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .chat-msg { display: flex; gap: 8px; align-items: flex-end; animation: fadeUp .2s ease both; }
+  .chat-msg.user { flex-direction: row-reverse; }
+  .chat-msg-avatar { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .chat-msg.bot .chat-msg-avatar { background: var(--teal-pale); }
+  .chat-msg.user .chat-msg-avatar { background: #e0e7ff; }
+  .chat-bubble { max-width: 78%; padding: 9px 13px; border-radius: 14px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+  .chat-msg.bot .chat-bubble { background: #f1f5f9; color: var(--text-dark); border-bottom-left-radius: 4px; }
+  .chat-msg.user .chat-bubble { background: var(--teal); color: #fff; border-bottom-right-radius: 4px; }
+  .typing-indicator { display: flex; gap: 4px; padding: 10px 14px; }
+  .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-pale); animation: typingBounce 1.2s infinite ease-in-out; }
+  .typing-dot:nth-child(2) { animation-delay: .2s; }
+  .typing-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+  .chat-input-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  #chat-input { flex: 1; border: 1.5px solid var(--border); border-radius: 20px; padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-dark); outline: none; background: #f8fafc; transition: border-color .15s; }
+  #chat-input:focus { border-color: var(--teal); background: #fff; }
+  #chat-input::placeholder { color: var(--text-pale); }
+  #chat-send { width: 36px; height: 36px; border-radius: 50%; background: var(--teal); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s, transform .1s; }
+  #chat-send:hover { background: var(--teal-dark); transform: scale(1.05); }
+  #chat-send:disabled { background: var(--text-pale); cursor: not-allowed; transform: none; }
+  #chat-send svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2.5; }
+  .chat-clear-btn { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--text-pale); padding: 0 4px; transition: color .15s; }
+  .chat-clear-btn:hover { color: #ef4444; }
+  @media (max-width: 420px) { #chat-panel { width: calc(100vw - 32px); right: 16px; bottom: 80px; } #chat-fab { right: 16px; bottom: 16px; } }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="blob blob-1"></div> 
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="diamond"><div class="diamond-inner"></div></div> 
+  <!---start -->
+  <div class="hero-badge">&#128138; Medicine Search Engine</div>
+  <h1 class="hero-title">Find the Right <span>Medicine</span></h1>
+  <p class="hero-sub">Search 224,000+ medicines by name, condition, therapeutic class, or side effect</p>
+    <!---search box -->
+  <div class="search-wrap">
+    <form class="search-form" method="POST" action="">
+      <div class="search-icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      </div>
+      <input type="text" class="search-input" name="query" placeholder="e.g. diabetes, hypertension, aspirin, nausea…" value="{{ request.form.get('query', '') }}" required autocomplete="off"/>
+      <button type="submit" class="search-btn">Search</button>
+    </form>
+  </div>
+  <div class="hero-tags">
+    <span class="hero-tag" onclick="setQuery('diabetes')">Diabetes</span>
+    <span class="hero-tag" onclick="setQuery('hypertension')">Hypertension</span>
+    <span class="hero-tag" onclick="setQuery('bacterial infections')">Bacterial Infections</span>
+    <span class="hero-tag" onclick="setQuery('pain relief')">Pain Relief</span>
+    <span class="hero-tag" onclick="setQuery('anti infective')">Anti Infectives</span>
+    <span class="hero-tag" onclick="setQuery('nausea vomiting')">Nausea</span>
+  </div>
+</section>
+
+<div class="features-bar">
+  <div class="features-inner">
+    <div class="stat-pill"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg><strong>224,013</strong> medicines indexed</div>
+    <div class="stat-divider"></div>
+    <div class="stat-pill"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>TF-IDF + Cosine Similarity</div>
+    <div class="stat-divider"></div>
+    <div class="stat-pill"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/></svg>Inverted Index Retrieval</div>
+    <div class="stat-divider"></div>
+    <div class="stat-pill"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Precision &amp; Recall Evaluation</div>
+  </div>
+</div>
+
+<main>
+  {% if not results %}
+  <div class="empty-state">
+    <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l3 3"/></svg></div>
+    <h3>Search our medicine database</h3>
+    <p>Enter a medicine name, condition, therapeutic class, or symptom to get started.</p>
+    <div class="empty-tips">
+      <div class="empty-tip"><span>&#128138;</span> Search by medicine name: <em>"augmentin"</em></div>
+      <div class="empty-tip"><span>&#129657;</span> Search by condition: <em>"bacterial infections"</em></div>
+      <div class="empty-tip"><span>&#9889;</span> Search by class: <em>"anti infectives"</em></div>
+      <div class="empty-tip"><span>&#128204;</span> Search by side effect: <em>"nausea"</em></div>
+    </div>
+  </div>
+  {% else %}
+  <form class="eval-form" method="POST" action="">
+    <div class="results-header">
+      <div class="results-count"><strong>{{ results|length }}</strong> result{{ 's' if results|length != 1 else '' }} found</div>
+      {% if request.form.get('query') %}<div class="results-query">&#128269; "{{ request.form.get('query') }}"</div>{% endif %}
+    </div>
+    <div class="results-list">
+      {% for doc_id, text, score in results %}
+      {% set parts = text.split(' ', 1) %}
+      {% set med_name = parts[0] if parts|length > 0 else 'Unknown' %}
+      <div class="result-card">
+        <div class="result-rank">{{ loop.index }}</div>
+        <div class="result-body">
+          <div class="result-title">{{ text.split(' ')[0:3]|join(' ') }}</div>
+          {% set words = text.split() %}
+          {% if words|length > 3 %}<span class="result-class">{{ words[3:6]|join(' ') }}</span>{% endif %}
+          <p class="result-use"><strong>&#128138; Indication:</strong> {{ text[text.find(' ')+1:][:200] }}{% if text|length > 200 %}…{% endif %}</p>
+          <div class="result-meta">
+            <span class="result-score">&#9670; Score: {{ "%.4f"|format(score) }}</span>
+            <span class="result-doc-id">ID #{{ doc_id }}</span>
+          </div>
+        </div>
+        <label class="relevance-label">
+          <input type="checkbox" name="relevant_{{ doc_id }}" value="1"> Relevant
+        </label>
+        <input type="hidden" name="doc_ids" value="{{ doc_id }}">
+        <input type="hidden" name="scores"  value="{{ score }}">
+        <input type="hidden" name="texts"   value="{{ text }}">
+      </div>
+      {% endfor %}
+    </div>
+    <button type="submit" name="evaluate" value="1" class="evaluate-btn">
+      <svg viewBox="0 0 24 24" width="16" height="16" style="stroke:#fff;fill:none;stroke-width:2;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Evaluate Relevance &mdash; Precision &amp; Recall @ K
+    </button>
+  </form>
+  {% endif %}
+
+  {% if precision is not none %}
+  <div class="eval-results">
+    <div class="eval-results-header">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <h3>Evaluation Results</h3>
+    </div>
+    <div class="eval-metrics">
+      <div class="eval-metric">
+        <div class="metric-label">Precision @ K</div>
+        <div class="metric-value {% if precision >= 0.7 %}good{% elif precision >= 0.4 %}mid{% else %}poor{% endif %}">{{ "%.4f"|format(precision) }}</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width: {{ ((precision * 100)|round)|string + '%' }};"></div></div>
+        <div class="metric-desc">{% if precision >= 0.7 %}Excellent — most results are relevant.{% elif precision >= 0.4 %}Moderate — some results are relevant.{% else %}Low — few results are relevant.{% endif %}</div>
+      </div>
+      <div class="eval-metric">
+        <div class="metric-label">Recall @ K</div>
+        <div class="metric-value {% if recall >= 0.7 %}good{% elif recall >= 0.4 %}mid{% else %}poor{% endif %}">{{ "%.4f"|format(recall) }}</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width: {{ ((recall * 100)|round)|string + '%' }};"></div></div>
+        <div class="metric-desc">{% if recall >= 0.7 %}Excellent — most relevant docs retrieved.{% elif recall >= 0.4 %}Moderate — some relevant docs missed.{% else %}Low — many relevant docs not retrieved.{% endif %}</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</main>
+
+<footer>&copy; 2025 MediSearch &mdash; Medicine Information Retrieval System &nbsp;|&nbsp; 224,013 medicines indexed</footer>
+
+<!-- ── CHAT WIDGET ── -->
+<button id="chat-fab" onclick="toggleChat()" title="Ask MediBot">
+  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <span id="chat-badge" class="chat-badge" style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;border:2px solid #fff;">1</span>
+</button>
+
+<div id="chat-panel">
+  <div class="chat-header">
+    <div class="chat-header-avatar">🤖</div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">MediBot</div>
+      <div class="chat-header-status"><span class="chat-status-dot"></span>Powered by gemini-2.5-flash + Medicine DB</div>
+    </div>
+    <button class="chat-close-btn" onclick="toggleChat()">✕</button>
+  </div>
+  <div id="chat-messages">
+    <div class="chat-msg bot">
+      <div class="chat-msg-avatar">🤖</div>
+      <div class="chat-bubble">Hi! I'm MediBot 👋 I can answer questions about medicines, side effects, dosage, and conditions — using both our database of 224,000+ medicines and general medical knowledge. How can I help you?</div>
+    </div>
+  </div>
+  <div class="chat-input-row">
+    <button class="chat-clear-btn" onclick="clearChat()" title="Clear chat">🗑</button>
+    <input id="chat-input" type="text" placeholder="Ask about a medicine or condition…" autocomplete="off" onkeydown="if(event.key==='Enter') sendMessage()"/>
+    <button id="chat-send" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  function setQuery(q) {
+    const input = document.querySelector('.search-input');
+    if (input) { input.value = q; input.form.submit(); }
+  }
+
+  let chatOpen    = false;
+  let chatHistory = [];
+  let isTyping    = false;
+
+  setTimeout(() => {
+    const badge = document.getElementById('chat-badge');
+    if (badge && !chatOpen) { badge.style.display = 'flex'; }
+  }, 2000);
+
+  function toggleChat() {
+    chatOpen = !chatOpen;
+    document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+    const badge = document.getElementById('chat-badge');
+    if (chatOpen) {
+      badge.style.display = 'none';
+      setTimeout(() => document.getElementById('chat-input').focus(), 250);
+      scrollToBottom();
+    }
+  }
+
+  function scrollToBottom() {
+    const msgs = document.getElementById('chat-messages');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function appendMessage(role, text) {
+    const msgs    = document.getElementById('chat-messages');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'chat-msg ' + role;
+    const avatar  = document.createElement('div');
+    avatar.className = 'chat-msg-avatar';
+    avatar.textContent = role === 'bot' ? '🤖' : '🧑';
+    const bubble  = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.textContent = text;
+    wrapper.appendChild(avatar);
+    wrapper.appendChild(bubble);
+    msgs.appendChild(wrapper);
+    scrollToBottom();
+  }
+
+  function showTyping() {
+    const msgs    = document.getElementById('chat-messages');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'chat-msg bot';
+    wrapper.id = 'typing-indicator';
+    const avatar = document.createElement('div');
+    avatar.className = 'chat-msg-avatar';
+    avatar.textContent = '🤖';
+    const indicator = document.createElement('div');
+    indicator.className = 'chat-bubble typing-indicator';
+    indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+    wrapper.appendChild(avatar);
+    wrapper.appendChild(indicator);
+    msgs.appendChild(wrapper);
+    scrollToBottom();
+  }
+
+  function hideTyping() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  async function sendMessage() {
+    if (isTyping) return;
+    const input   = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send');
+    const message = input.value.trim();
+    if (!message) return;
+
+    appendMessage('user', message);
+    input.value = '';
+    chatHistory.push({ role: 'user', content: message });
+
+    isTyping = true;
+    sendBtn.disabled = true;
+    input.disabled   = true;
+    showTyping();
+
+    try {
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message, history: chatHistory.slice(-10) })
+      });
+      const data  = await response.json();
+      hideTyping();
+      const reply = data.reply || 'Sorry, I could not get a response.';
+      appendMessage('bot', reply);
+      chatHistory.push({ role: 'assistant', content: reply });
+    } catch (err) {
+      hideTyping();
+      appendMessage('bot', 'Connection error. Please make sure Flask is running.');
+    }
+
+    isTyping = false;
+    sendBtn.disabled = false;
+    input.disabled   = false;
+    input.focus();
+  }
+
+  function clearChat() {
+    chatHistory = [];
+    document.getElementById('chat-messages').innerHTML = '';
+    appendMessage('bot', 'Chat cleared! How can I help you?');
+  }
+</script>
+</body>
+</html>
