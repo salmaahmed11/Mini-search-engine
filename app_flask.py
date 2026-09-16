@@ -2,7 +2,6 @@ import re
 import pickle
 import os
 import requests
-from bs4 import BeautifulSoup
 from collections import defaultdict
 import google.generativeai as genai
 
